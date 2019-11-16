@@ -11,21 +11,38 @@
 #include "gpio_driver.h"
 #include "led_matrix.h"
 
+#include "portmacro.h"
+#include "semphr.h"
 #include <string.h>
+
+SemaphoreHandle_t display;
 
 void refreshDisplayTask() {
 
   while (1) {
+    xSemaphoreTake(display, portMAX_DELAY);
     updateDisplay();
+    xSemaphoreGive(display);
     vTaskDelay(4);
   }
 }
 
 void updateDisplayTask() {
 
+  int x, y;
+
   while (1) {
-    updatePixel(0, 0, 1);
-    // vTaskDelay(1);
+    xSemaphoreTake(display, portMAX_DELAY);
+
+    for (y = 0; y < 64; y++) {
+      clearDisplay();
+      drawSpaceship(0, y, 7);
+      // delay__ms(10);
+    }
+
+    xSemaphoreGive(display);
+
+    // delay__ms(1000);
   }
 }
 
@@ -48,6 +65,7 @@ int main(void) {
   // UNUSED(uart_task); // uart_task is un-used in if we are doing cli init()
 #endif
 
+  display = xSemaphoreCreateMutex();
   init_led_matrix();
 
   LPC_IOCON->P2_3 = 0;
@@ -58,9 +76,19 @@ int main(void) {
 
   puts("Starting RTOS");
 
+  while (1) {
+
+    for (int y = 0, x = 0; x < 32; x++) {
+      clearDisplay();
+      drawSpaceship(x, 0, 7);
+      updateDisplay();
+      delay__ms(10);
+    }
+  }
+
   // xTaskCreate(clearDisplayTask, "clearDisplayTask", 1024, NULL, 1, NULL);
-  xTaskCreate(updateDisplayTask, "updateDisplayTask", 1024, NULL, 2, NULL);
-  xTaskCreate(refreshDisplayTask, "refreshDisplayTask", 1024, NULL, 3, NULL);
+  xTaskCreate(updateDisplayTask, "updateDisplayTask", 2048, NULL, 1, NULL);
+  xTaskCreate(refreshDisplayTask, "refreshDisplayTask", 2048, NULL, 2, NULL);
 
   vTaskStartScheduler(); // This function never returns unless RTOS scheduler runs out of memory and fails
 

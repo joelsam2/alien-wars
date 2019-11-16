@@ -83,7 +83,7 @@ void init_led_matrix() {
   gpio_dir(2, 8, 0);
   gpio_dir(2, 6, 0);
 
-  led_matrix_control(OE, false);
+  led_matrix_control(OE, true);
   led_matrix_control(R1, false);
   led_matrix_control(G1, false);
   led_matrix_control(B1, false);
@@ -185,70 +185,36 @@ void led_matrix_control(int type, bool state) {
 
 void updateDisplay(void) {
 
-  for (uint8_t row = 0; row < 16; row++) {
+  for (uint8_t row = 0; row < 32; row++) {
 
     for (uint8_t col = 0; col < 64; col++) {
 
-      if (matrixbuff[row][col] & 0x1) {
+      if (matrixbuff[row][col] & 0x1 && (row < 16)) {
         led_matrix_control(B1, true);
       } else {
         led_matrix_control(B1, false);
       }
-      if (matrixbuff[row][col] & 0x2) {
+      if (matrixbuff[row][col] & 0x2 && (row < 16)) {
         led_matrix_control(G1, true);
       } else {
         led_matrix_control(G1, false);
       }
-      if (matrixbuff[row][col] & 0x4) {
+      if (matrixbuff[row][col] & 0x4 && (row < 16)) {
         led_matrix_control(R1, true);
       } else {
         led_matrix_control(R1, false);
       }
-
-      led_matrix_control(CLK, true);
-      led_matrix_control(CLK, false);
-    }
-
-    led_matrix_control(OE, true);
-    led_matrix_control(LAT, true);
-
-    led_matrix_control(A, false);
-    led_matrix_control(B, false);
-    led_matrix_control(C, false);
-    led_matrix_control(D, false);
-
-    if (row & 0x1) {
-      led_matrix_control(A, true);
-    }
-    if (row & 0x2) {
-      led_matrix_control(B, true);
-    }
-    if (row & 0x4) {
-      led_matrix_control(C, true);
-    }
-    if (row & 0x8) {
-      led_matrix_control(D, true);
-    }
-
-    led_matrix_control(LAT, false);
-    led_matrix_control(OE, false);
-  }
-
-  for (uint8_t row = 16; row < 32; row++) {
-
-    for (uint8_t col = 0; col < 64; col++) {
-
-      if (matrixbuff[row][col] & 0x1) {
+      if (matrixbuff[row][col] & 0x1 && (row > 15)) {
         led_matrix_control(B2, true);
       } else {
         led_matrix_control(B2, false);
       }
-      if (matrixbuff[row][col] & 0x2) {
+      if (matrixbuff[row][col] & 0x2 && (row > 15)) {
         led_matrix_control(G2, true);
       } else {
         led_matrix_control(G2, false);
       }
-      if (matrixbuff[row][col] & 0x4) {
+      if (matrixbuff[row][col] & 0x4 && (row > 15)) {
         led_matrix_control(R2, true);
       } else {
         led_matrix_control(R2, false);
@@ -294,4 +260,63 @@ int8_t updatePixel(uint8_t x, uint8_t y, uint8_t color) {
   matrixbuff[x][y] = color;
 
   return 0;
+}
+
+void drawSpaceship(uint8_t x, uint8_t y, uint8_t color) {
+
+  updatePixel(x, y, color);
+  updatePixel(x, y + 1, 0);
+  updatePixel(x, y + 2, 0);
+  updatePixel(x, y + 3, 0);
+  updatePixel(x, y + 4, 0);
+
+  updatePixel(x + 1, y, 0);
+  updatePixel(x + 1, y + 1, color);
+  updatePixel(x + 1, y + 2, 0);
+  updatePixel(x + 1, y + 3, 0);
+  updatePixel(x + 1, y + 4, 0);
+
+  updatePixel(x + 2, y, 0);
+  updatePixel(x + 2, y + 1, color);
+  updatePixel(x + 2, y + 2, color);
+  updatePixel(x + 2, y + 3, 0);
+  updatePixel(x + 2, y + 4, 0);
+
+  updatePixel(x + 3, y, color);
+  updatePixel(x + 3, y + 1, color);
+  updatePixel(x + 3, y + 2, color);
+  updatePixel(x + 3, y + 3, color);
+  updatePixel(x + 3, y + 4, color);
+
+  updatePixel(x + 4, y, color);
+  updatePixel(x + 4, y + 1, color);
+  updatePixel(x + 4, y + 2, color);
+  updatePixel(x + 4, y + 3, color);
+  updatePixel(x + 4, y + 4, color);
+
+  updatePixel(x + 5, y, 0);
+  updatePixel(x + 5, y + 1, color);
+  updatePixel(x + 5, y + 2, color);
+  updatePixel(x + 5, y + 3, 0);
+  updatePixel(x + 5, y + 4, 0);
+
+  updatePixel(x + 6, y, 0);
+  updatePixel(x + 6, y + 1, color);
+  updatePixel(x + 6, y + 2, 0);
+  updatePixel(x + 6, y + 3, 0);
+  updatePixel(x + 6, y + 4, 0);
+
+  updatePixel(x + 7, y, color);
+  updatePixel(x + 7, y + 1, 0);
+  updatePixel(x + 7, y + 2, 0);
+  updatePixel(x + 7, y + 3, 0);
+  updatePixel(x + 7, y + 4, 0);
+}
+
+void clearDisplay(void) {
+  for (uint8_t row = 0; row < 32; row++) {
+    for (uint8_t col = 0; col < 64; col++) {
+      matrixbuff[row][col] = 0;
+    }
+  }
 }
