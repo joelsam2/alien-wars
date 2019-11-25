@@ -1,1 +1,1 @@
-
+added spaceship movement, added shooting, added random enemy movement
