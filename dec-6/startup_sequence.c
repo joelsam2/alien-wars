@@ -137,6 +137,8 @@ void startup_screen(void) {
     }
   }
   update_display_delay();
+  clearDisplay();
+  updateDisplay();
   delay__ms(900);
 }
 
