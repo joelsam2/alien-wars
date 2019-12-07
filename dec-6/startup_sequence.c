@@ -22,10 +22,32 @@ extern uint8_t ready[8][64];
 extern uint8_t game_over_red[32][64];
 
 // call uart_init() in main
+void startup_set_joystick_control_signal(void) {
+
+  if (startup_received_data == 1)
+    joystick_control_signal = down;
+  else if (startup_received_data == 2)
+    joystick_control_signal = up;
+  else if (startup_received_data == 3)
+    joystick_control_signal = left;
+  else if (startup_received_data == 4)
+    joystick_control_signal = right;
+  else if (startup_received_data == 5)
+    joystick_control_signal = right_up_diagonal;
+  else if (startup_received_data == 6)
+    joystick_control_signal = right_down_diagonal;
+  else if (startup_received_data == 7)
+    joystick_control_signal = left_up_diagonal;
+  else if (startup_received_data == 8)
+    joystick_control_signal = left_down_diagonal;
+  else
+    joystick_control_signal = center;
+}
+
 bool startup_bluetooth_receive_data(void) {
   if ((LPC_UART3->LSR) & 1) {
     startup_received_data = LPC_UART3->RBR;
-    set_joystick_control_signal();
+    startup_set_joystick_control_signal();
     if (joystick_control_signal == 9)
       end_start_screen = true;
     return true;
@@ -181,4 +203,3 @@ void burst_animation(uint8_t x, uint8_t y, uint8_t color) {
   updateDisplay();
   updateDisplay();
 }
-
