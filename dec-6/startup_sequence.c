@@ -109,6 +109,7 @@ void startup_screen(void) {
   clearDisplay();
   updateDisplay();
   start_flag = false;
+  joystick_control_signal=0;
 
   // trigger to play are you ready!
   gpio_set(2, 0, 1);
