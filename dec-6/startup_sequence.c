@@ -2,10 +2,13 @@
 #include "led_matrix.h"
 #include "lpc40xx.h"
 #include "stdlib.h"
+#include <alien_uart.h>
 #include <stdio.h>
 #include <string.h>
 
 bool start_flag;
+extern joystick joystick_control_signal;
+
 extern uint8_t level_two_red[15][64];
 extern uint8_t level_two_white[15][64];
 extern uint8_t level_three_red[15][64];
@@ -18,52 +21,28 @@ extern uint8_t ready[8][64];
 extern uint8_t game_over_red[32][64];
 
 void burst_animation(uint8_t x, uint8_t y, uint8_t color) {
-  // updatePixel(x, y, color);
-  // updatePixel(x - 2, y + 1, color);
-  // updatePixel(x + 2, y + 1, color);
-  // updatePixel(x - 3, y + 3, color);
-  // updatePixel(x + 1, y + 3, color);
-  // updatePixel(x + 3, y + 4, color);
-  // updatePixel(x - 1, y + 4, color);
-  // updatePixel(x + 1, y + 5, color);
-  // updatePixel(x, y + 7, color);
-  // updatePixel(x - 2, y + 6, color);
+
+  updatePixel(x + 2, y + 2, color);
+  updateDisplay();
+  updateDisplay();
 
   updatePixel(x, y, color);
-  updatePixel(x - 1, y, color);
-  updatePixel(x - 2, y, color);
   updatePixel(x + 1, y, color);
-  updatePixel(x + 2, y, color);
-
   updatePixel(x, y + 1, color);
-  updatePixel(x - 1, y + 1, color);
-  updatePixel(x - 2, y + 1, color);
-  updatePixel(x + 1, y + 1, color);
-  updatePixel(x + 2, y + 1, color);
 
-  updatePixel(x, y + 2, color);
-  updatePixel(x - 1, y + 2, color);
-  updatePixel(x - 2, y + 2, color);
-  updatePixel(x + 1, y + 2, color);
-  updatePixel(x + 2, y + 2, color);
+  updatePixel(x + 3, y, color);
+  updatePixel(x + 4, y, color);
+  updatePixel(x + 4, y + 1, color);
 
   updatePixel(x, y + 3, color);
-  updatePixel(x - 1, y + 3, color);
-  updatePixel(x - 2, y + 3, color);
-  updatePixel(x + 1, y + 3, color);
-  updatePixel(x + 2, y + 3, color);
-
   updatePixel(x, y + 4, color);
-  updatePixel(x - 1, y + 4, color);
-  updatePixel(x - 2, y + 4, color);
-  updatePixel(x + 1, y + 4, color);
   updatePixel(x + 2, y + 4, color);
 
-  updatePixel(x, y + 5, color);
-  updatePixel(x - 1, y + 5, color);
-  updatePixel(x - 2, y + 5, color);
-  updatePixel(x + 1, y + 5, color);
-  updatePixel(x + 2, y + 5, color);
+  updatePixel(x + 3, y + 4, color);
+  updatePixel(x + 3, y + 4, color);
+  updatePixel(x + 4, y + 3, color);
+  updateDisplay();
+  updateDisplay();
 }
 void level_up_screen(uint8_t level_number) {
 
@@ -116,8 +95,9 @@ void update_display_delay(void) {
   if (!start_flag) {
     for (int i = 0; i < 90; i++) {
       updateDisplay();
+      (void)bluetooth_receive_data();
 
-      if ((LPC_GPIO0->PIN & (1 << 29))) {
+      if (joystick_control_signal == 9) {
         start_flag = true;
         i = 100;
         break;
@@ -127,16 +107,16 @@ void update_display_delay(void) {
 }
 
 void startup_screen(void) {
-  LPC_GPIO0->DIR &= ~(1 << 29);
+  LPC_GPIO2->DIR &= ~(1 << 1);
 
   while (1) {
     memcpy(matrixbuff, startup_new, (1 * 32 * 64));
     update_display_delay();
     memcpy(matrixbuff, startup_new_two, (1 * 32 * 64));
     update_display_delay();
-    if ((LPC_GPIO0->PIN & (1 << 29)) || (start_flag == true)) {
-      while (gpio_get(0, 29))
-        ;
+    (void)bluetooth_receive_data();
+
+    if ((joystick_control_signal == 9)|| start_flag==true) {
       break;
     }
   }
