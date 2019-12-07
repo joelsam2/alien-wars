@@ -1,14 +1,12 @@
+#include "alien_uart.h"
 #include "gpio_driver.h"
 #include "led_matrix.h"
 #include "lpc40xx.h"
 #include "stdlib.h"
-#include <alien_uart.h>
 #include <stdio.h>
 #include <string.h>
 
 bool start_flag;
-bool end_start_screen = false;
-uint8_t startup_received_data;
 extern joystick joystick_control_signal;
 extern uint8_t level_two_red[15][64];
 extern uint8_t level_two_white[15][64];
@@ -21,64 +19,22 @@ extern uint8_t you[8][64];
 extern uint8_t ready[8][64];
 extern uint8_t game_over_red[32][64];
 
-// call uart_init() in main
-void startup_set_joystick_control_signal(void) {
-
-  if (startup_received_data == 1)
-    joystick_control_signal = down;
-  else if (startup_received_data == 2)
-    joystick_control_signal = up;
-  else if (startup_received_data == 3)
-    joystick_control_signal = left;
-  else if (startup_received_data == 4)
-    joystick_control_signal = right;
-  else if (startup_received_data == 5)
-    joystick_control_signal = right_up_diagonal;
-  else if (startup_received_data == 6)
-    joystick_control_signal = right_down_diagonal;
-  else if (startup_received_data == 7)
-    joystick_control_signal = left_up_diagonal;
-  else if (startup_received_data == 8)
-    joystick_control_signal = left_down_diagonal;
-  else
-    joystick_control_signal = center;
-}
-
-bool startup_bluetooth_receive_data(void) {
-  if ((LPC_UART3->LSR) & 1) {
-    startup_received_data = LPC_UART3->RBR;
-    startup_set_joystick_control_signal();
-    if (joystick_control_signal == 9)
-      end_start_screen = true;
-    return true;
-  } else {
-    return false;
-  }
-}
-
-void startup_update_display_delay(void) {
-
-  if (!start_flag) {
-    for (int i = 0; i < 90; i++) {
-      updateDisplay();
-      (void) startup_bluetooth_receive_data();
-
-      if ((end_start_screen==true)) {
-        start_flag = true;
-        i = 100;
-        break;
-      }
-    }
-  }
-}
-
 void update_display_delay(void) {
 
   if (!start_flag) {
     for (int i = 0; i < 90; i++) {
       updateDisplay();
+    }
+  }
+}
 
-      if ((LPC_GPIO0->PIN & (1 << 29))) {
+void startup_update_display_delay(void) {
+  if (!start_flag) {
+    for (int i = 0; i < 90; i++) {
+      updateDisplay();
+      (void)bluetooth_receive_data();
+
+      if (joystick_control_signal==9) {
         start_flag = true;
         i = 100;
         break;
@@ -136,23 +92,23 @@ void game_over_screen(void) {
 }
 
 void startup_screen(void) {
-  LPC_GPIO0->DIR &= ~(1 << 29);
+  //LPC_GPIO0->DIR &= ~(1 << 29);
 
   while (1) {
     memcpy(matrixbuff, startup_new, (1 * 32 * 64));
     startup_update_display_delay();
     memcpy(matrixbuff, startup_new_two, (1 * 32 * 64));
     startup_update_display_delay();
-    (void) startup_bluetooth_receive_data();
-    if ((end_start_screen == true) || (start_flag == true)) {
-        break;
-      }
+
+    (void)bluetooth_receive_data();
+    if ((joystick_control_signal == 9) || (start_flag == true)) {
+      break;
+    }
   }
 
   clearDisplay();
   updateDisplay();
   start_flag = false;
-  end_start_screen=false;
 
   // trigger to play are you ready!
   gpio_set(2, 0, 1);
