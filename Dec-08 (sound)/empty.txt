@@ -1,0 +1,1 @@
+// solved bugs and used i2c to communicate with display board
