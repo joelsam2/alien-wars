@@ -1,1 +1,2 @@
-
+Refined collision detection of level 3
+Added health in level 3
